@@ -1,19 +1,77 @@
 import numpy as np
+from math import *
+import time
 
+stuck_start_time = time.time()
+
+#The requirement for a passing submission is to map at least 40% of the environment at 60% fidelity
+#  and locate at least one of the rock samples. Each time you launch the simulator in autonomous
+# mode there will be 6 rock samples
 
 # This is where you can build a decision tree for determining throttle, brake and steer 
 # commands based on the output of the perception_step() function
+
+def take_evasive_action(Rover):
+    global stuck_start_time
+
+    print("***TAKING EVASIVE ACTION****")
+    print(stuck_start_time, time.time() - stuck_start_time)
+    # # if stuck_start_time==None:
+    # #     stuck_start_time=time.time()
+    #print("stuck more than 0.5 -- Initiating Unstuck-ing Proceudre")
+    Rover.throttle = 0
+    # Release the brake to allow turning
+    Rover.brake = 0
+    # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
+    Rover.steer = -15
+    # stuck_start_time = time.time()
+    return Rover
+
+
 def decision_step(Rover):
+
+    global stuck_start_time
 
     # Implement conditionals to decide what to do given perception data
     # Here you're all set up with some basic functionality but you'll need to
     # improve on this decision tree to do a good job of navigating autonomously!
 
+    if Rover.picking_up:
+        #print("***DEBUG*** skipping")
+        return Rover
+
+    if Rover.near_sample:
+        #print("*****DEBUG**** Near Rock Sample")
+        Rover.mode = 'stop'
+        Rover.throttle = 0
+        Rover.brake = Rover.brake_set
+        Rover.send_pickup = True
+        return Rover
+
+    if Rover.nugget_mean_angle!=None and not isnan(Rover.nugget_mean_angle):
+        Rover.steer = degrees(Rover.nugget_mean_angle)
+        Rover.throttle = Rover.throttle_set
+        Rover.brake = 0
+        return Rover
+
     # Example:
     # Check if we have vision data to make decisions with
     if Rover.nav_angles is not None:
+        
         # Check for Rover.mode status
-        if Rover.mode == 'forward': 
+        if Rover.mode == 'forward':
+
+            # #check if STUCK under a rock but can see navigable terrain
+            if Rover.vel < 0.1 and Rover.throttle!=0:
+                if time.time() - stuck_start_time > 0.5:
+                    Rover = take_evasive_action(Rover)
+                    return Rover
+
+            #reset time spent stuck
+            else:
+                stuck_start_time = time.time()
+
+
             # Check the extent of navigable terrain
             if len(Rover.nav_angles) >= Rover.stop_forward:  
                 # If mode is forward, navigable terrain looks good 
@@ -60,6 +118,9 @@ def decision_step(Rover):
                     # Set steer to mean angle
                     Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
                     Rover.mode = 'forward'
+
+
+
     # Just to make the rover do something 
     # even if no modifications have been made to the code
     else:
