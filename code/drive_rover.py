@@ -79,6 +79,8 @@ class RoverState():
         self.nav_mean_angle = None
         self.nugget_mean_angle = None
         self.start_pos = None
+        self.home_bearing = None
+        self.distance_home = 999
 
 # Initialize our rover 
 Rover = RoverState()
