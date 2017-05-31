@@ -231,7 +231,9 @@ def perception_step(Rover):
         # Example: Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
         #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
         #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
-    if (Rover.roll < 0.5 or Rover.roll > 359.5) and (Rover.pitch < 0.5 or Rover.pitch > 359.5):
+    #if (Rover.roll < 1.5 or Rover.roll > 358.5) and (Rover.pitch < 1.5 or Rover.pitch > 358.5):
+    # if (Rover.roll < 0.5 or Rover.roll > 359.5) and (Rover.pitch < 0.5 or Rover.pitch > 359.5):
+    if (Rover.roll < 0.2 or Rover.roll > 359.8) and (Rover.pitch < 0.2 or Rover.pitch > 359.8):
         #print("UPDATING WORLD MAP WITH ROLL, PITCH VALUES", Rover.roll, Rover.pitch)
         Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
         Rover.worldmap[nugget_y_world, nugget_x_world, 1] += 1
