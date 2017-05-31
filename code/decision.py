@@ -15,20 +15,14 @@ donut_start_time = time.time()
 def find_nearest(array,value):
 
     print("looking for closest item to", value)
-    #print(array * 180/np.pi)
     idx = (np.abs(array-value)).argmin()
     print("index,value", idx, array[idx])
-    # print(np.abs(array-value))
     return array[idx]
 
 def take_evasive_action(Rover):
     global stuck_start_time
 
     print("***TAKING EVASIVE ACTION****")
-    #print(stuck_start_time, time.time() - stuck_start_time)
-    # # if stuck_start_time==None:
-    # #     stuck_start_time=time.time()
-    #print("stuck more than 0.5 -- Initiating Unstuck-ing Proceudre")
     Rover.throttle = 0
     # Release the brake to allow turning
     Rover.brake = 0
@@ -43,12 +37,9 @@ def decision_step(Rover):
     global stuck_start_time
     global donut_start_time
 
-
-
     #done?
     if Rover.mode == "mission complete":
         quit()
-
 
     #send pickup?
     if Rover.near_sample and Rover.vel == 0 and not Rover.picking_up:
