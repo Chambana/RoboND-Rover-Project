@@ -3,6 +3,7 @@ from math import *
 import time
 
 stuck_start_time = time.time()
+donut_start_time = time.time()
 
 #The requirement for a passing submission is to map at least 40% of the environment at 60% fidelity
 #  and locate at least one of the rock samples. Each time you launch the simulator in autonomous
@@ -15,7 +16,7 @@ def take_evasive_action(Rover):
     global stuck_start_time
 
     print("***TAKING EVASIVE ACTION****")
-    print(stuck_start_time, time.time() - stuck_start_time)
+    #print(stuck_start_time, time.time() - stuck_start_time)
     # # if stuck_start_time==None:
     # #     stuck_start_time=time.time()
     #print("stuck more than 0.5 -- Initiating Unstuck-ing Proceudre")
@@ -31,22 +32,63 @@ def take_evasive_action(Rover):
 def decision_step(Rover):
 
     global stuck_start_time
+    global donut_start_time
 
-    # Implement conditionals to decide what to do given perception data
-    # Here you're all set up with some basic functionality but you'll need to
-    # improve on this decision tree to do a good job of navigating autonomously!
+    #done?
+    if Rover.samples_found==6:
+        Rover.mode="Go Home"
 
-    if Rover.picking_up:
-        #print("***DEBUG*** skipping")
+
+
+
+    if Rover.near_sample and Rover.vel == 0 and not Rover.picking_up:
+        print("SENDING PICKUP")
+        Rover.send_pickup = True
         return Rover
 
     if Rover.near_sample:
-        #print("*****DEBUG**** Near Rock Sample")
+        print("near sample, trying to stop")
         Rover.mode = 'stop'
         Rover.throttle = 0
         Rover.brake = Rover.brake_set
-        Rover.send_pickup = True
+        # Rover.send_pickup = True
         return Rover
+
+    if Rover.mode == "donut_breakout":
+        print("handling donut breakout procedure")
+        if time.time() - donut_start_time > 15:
+            Rover.mode = "forward"
+            donut_start_time=time.time()
+        else:
+            Rover.throttle = 0
+            Rover.brake = 0
+            Rover.steer = -15
+        return Rover
+
+    #detect donut turning
+    if Rover.steer==15 or Rover.steer==-15:
+        #how long have we been doing donuts?
+        if time.time() - donut_start_time > 10:  #more than 10 seconds?...try to break out
+            print("Detected that you're stuck in a donut...", time.time() - donut_start_time)
+            #Rover.steer= Rover.steer*-1
+            #donut_start_time = time.time()
+            Rover.mode = "donut_breakout"
+            return Rover
+    else:
+        donut_start_time=time.time()
+
+    if Rover.picking_up:
+        if not Rover.near_sample:
+            print("Overshot the sample!  Reacquiring..")
+            # Rover.brake = 0
+            # Rover.throttle = -2
+            Rover.mode='stop'
+            Rover.picking_up=0
+            Rover.send_pickup = False
+            Rover.steer=-15
+        return Rover
+
+
 
     if Rover.nugget_mean_angle!=None and not isnan(Rover.nugget_mean_angle):
         Rover.steer = degrees(Rover.nugget_mean_angle)
@@ -83,7 +125,10 @@ def decision_step(Rover):
                     Rover.throttle = 0
                 Rover.brake = 0
                 # Set steering to average angle clipped to the range +/- 15
-                Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+                try:
+                    Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+                except:
+                    print("mean of nav angles caught an exception")
             # If there's a lack of navigable terrain pixels then go to 'stop' mode
             elif len(Rover.nav_angles) < Rover.stop_forward:
                     # Set mode to "stop" and hit the brakes!
@@ -116,7 +161,10 @@ def decision_step(Rover):
                     # Release the brake
                     Rover.brake = 0
                     # Set steer to mean angle
-                    Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+                    try:
+                        Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+                    except:
+                        print("mean of nav angles caught an exception")
                     Rover.mode = 'forward'
 
 
@@ -128,9 +176,10 @@ def decision_step(Rover):
         Rover.steer = 0
         Rover.brake = 0
         
-    # If in a state where want to pickup a rock send pickup command
-    if Rover.near_sample and Rover.vel == 0 and not Rover.picking_up:
-        Rover.send_pickup = True
+    #save start pos
+    if Rover.start_pos==None:
+        Rover.start_pos = ( Rover.pos[0],Rover.pos[1])
+        print("Saving start position as:", Rover.start_pos)
     
     return Rover
 

@@ -78,6 +78,8 @@ class RoverState():
         self.send_pickup = False # Set to True to trigger rock pickup
         self.nav_mean_angle = None
         self.nugget_mean_angle = None
+        self.start_pos = None
+
 # Initialize our rover 
 Rover = RoverState()
 

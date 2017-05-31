@@ -237,7 +237,8 @@ def perception_step(Rover):
         Rover.worldmap[nugget_y_world, nugget_x_world, 1] += 1
         Rover.worldmap[road_y_world, road_x_world, 2] += 1
     else:
-        print("NOT UPDATING WORLD MAP - ROLL, PITCH OUTSIDE THRESHOLD", Rover.roll, Rover.pitch)
+        pass
+        #print("NOT UPDATING WORLD MAP - ROLL, PITCH OUTSIDE THRESHOLD", Rover.roll, Rover.pitch)
 
 
     # 8) Convert rover-centric pixel positions to polar coordinates
@@ -246,8 +247,10 @@ def perception_step(Rover):
         # Rover.nav_angles = rover_centric_angles
     # Calculate pixel values in rover-centric coords and distance/angle to all pixels
     Rover.nav_dists, Rover.nav_angles = to_polar_coords(road_xpix, road_ypix)
-    Rover.nav_mean_angle = np.mean(Rover.nav_angles)
-
+    try:
+        Rover.nav_mean_angle = np.mean(Rover.nav_angles)
+    except:
+        print("mean of nav angles caught an exception")
     # Check whether any rock detections are present in worldmap
     try:
         rock_world_pos = Rover.worldmap[:, :, 1].nonzero()

@@ -51,11 +51,11 @@ def update_rover(Rover, data):
       # Update number of rocks found
       Rover.samples_found = Rover.samples_to_find - np.int(data["sample_count"])
 
-      print('speed =',Rover.vel, 'position =', Rover.pos, 'throttle =',
-      Rover.throttle, 'steer_angle =', Rover.steer, 'near_sample:', Rover.near_sample,
-      'picking_up:', data["picking_up"], 'sending pickup:', Rover.send_pickup,
-      'total time:', Rover.total_time, 'samples remaining:', data["sample_count"],
-      'samples found:', Rover.samples_found)
+      #print('speed =',Rover.vel, 'position =', Rover.pos, 'throttle =',
+      #Rover.throttle, 'steer_angle =', Rover.steer, 'near_sample:', Rover.near_sample,
+      #'picking_up:', data["picking_up"], 'sending pickup:', Rover.send_pickup,
+      #'total time:', Rover.total_time, 'samples remaining:', data["sample_count"],
+      #'samples found:', Rover.samples_found)
       # Get the current image from the center camera of the rover
       imgString = data["image"]
       image = Image.open(BytesIO(base64.b64decode(imgString)))
@@ -70,12 +70,18 @@ def create_output_images(Rover):
       # Create a scaled map for plotting and clean up obs/nav pixels a bit
       if np.max(Rover.worldmap[:,:,2]) > 0:
             nav_pix = Rover.worldmap[:,:,2] > 0
-            navigable = Rover.worldmap[:,:,2] * (255 / np.mean(Rover.worldmap[nav_pix, 2]))
+            try:
+                navigable = Rover.worldmap[:,:,2] * (255 / np.mean(Rover.worldmap[nav_pix, 2]))
+            except:
+                print("mean of worldmap caught exception")
       else: 
             navigable = Rover.worldmap[:,:,2]
       if np.max(Rover.worldmap[:,:,0]) > 0:
             obs_pix = Rover.worldmap[:,:,0] > 0
-            obstacle = Rover.worldmap[:,:,0] * (255 / np.mean(Rover.worldmap[obs_pix, 0]))
+            try:
+                obstacle = Rover.worldmap[:,:,0] * (255 / np.mean(Rover.worldmap[obs_pix, 0]))
+            except:
+                print("mean of worldmap caught except")
       else:
             obstacle = Rover.worldmap[:,:,0]
 
